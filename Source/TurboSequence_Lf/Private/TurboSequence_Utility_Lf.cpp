@@ -1466,6 +1466,7 @@ void FTurboSequence_Utility_Lf::AddRenderInstance(FSkinnedMeshReference_Lf& Refe
 
 	const int32 InstanceIndex = RenderData.InstanceMap.Num();
 	RenderData.InstanceMap.Add(Runtime.GetMeshID(), InstanceIndex);
+	RenderData.InstanceIdxToMeshID.Add(Runtime.GetMeshID());
 	// const int32 InstanceCopyIndex = RenderData.InstanceMapCopy.Num();
 	// RenderData.InstanceMapCopy.Add(Runtime.GetMeshID(), InstanceCopyIndex);
 	//RenderData.ParticleRemoveIDs.Add(RenderData.GetUniqueID());
@@ -1519,23 +1520,19 @@ void FTurboSequence_Utility_Lf::RemoveRenderInstance(FSkinnedMeshReference_Lf& R
 	Library.BlackListedMeshIDs.Add(Runtime.GetMeshID(), false);
 
 	const int32 InstanceIndex = RenderData.InstanceMap[Runtime.GetMeshID()];
-	//RenderData.ParticlesToRemove[InstanceIndex] = true;
-	//RenderData.ParticlePositions[InstanceIndex] = FVector(-100000, -100000, -100000); // Remove Point
-
 	RenderData.InstanceMap.Remove(Runtime.GetMeshID());
-	for (TTuple<int32, int32>& Item : RenderData.InstanceMap)
-	{
-		if (Item.Value > InstanceIndex)
-		{
-			Item.Value--;
-		}
-	}
-	//
-	//
-	RenderData.ParticlePositions.RemoveAt(InstanceIndex);
-	RenderData.ParticleRotations.RemoveAt(InstanceIndex);
-	RenderData.ParticleScales.RemoveAt(InstanceIndex);
-	RenderData.ParticleLevelOfDetails.RemoveAt(InstanceIndex);
+
+	int32 SwappedMeshID = RenderData.InstanceIdxToMeshID.Last();
+	RenderData.InstanceIdxToMeshID.RemoveAtSwap(InstanceIndex);
+	// No update needed if we are removing the last one
+	if (SwappedMeshID != Runtime.GetMeshID())
+		RenderData.InstanceMap[SwappedMeshID] = InstanceIndex;
+
+	RenderData.ParticlePositions.RemoveAtSwap(InstanceIndex);
+	RenderData.ParticleRotations.RemoveAtSwap(InstanceIndex);
+	RenderData.ParticleScales.RemoveAtSwap(InstanceIndex);
+	RenderData.ParticleLevelOfDetails.RemoveAtSwap(InstanceIndex);
+	//RenderData.ParticleIDs.RemoveAt(InstanceIndex);
 	//RenderData.ParticleIDs.RemoveAt(InstanceIndex);
 
 	// Removing IDs happens on the removal of this Array in Tick()

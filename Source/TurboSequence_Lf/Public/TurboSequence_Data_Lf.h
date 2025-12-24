@@ -55,7 +55,8 @@ struct TURBOSEQUENCE_LF_API FRenderData_Lf
 {
 	GENERATED_BODY()
 
-	explicit FRenderData_Lf(const FName& EmitterName, const FName& ParticleIDName, const FName& PositionName, const FName& RotationName,
+	explicit FRenderData_Lf(const FName& EmitterName, const FName& ParticleIDName, const FName& PositionName,
+	                        const FName& RotationName,
 	                        const FName& ScaleName, const FString& MeshName, const FString& MaterialsName,
 	                        const FName& LodName, const FName& CustomDataName, const FName& ParticleRemoveName)
 		: EmitterName(EmitterName),
@@ -87,6 +88,7 @@ struct TURBOSEQUENCE_LF_API FRenderData_Lf
 
 	// ID
 	TMap<int32, int32> InstanceMap; // < MeshID | Renderer Instance Index >
+	TArray<int32> InstanceIdxToMeshID;
 	//TMap<int32, int32> InstanceMapCopy; // < MeshID | Renderer Instance Index > Needed to Keep the Indices correct
 	//TArray<int32> MeshIDsToRemove;
 	//TArray<int32> ParticleIDs; // < Unique ID > -> Used internally for Niagara finding the Index
@@ -116,7 +118,6 @@ struct TURBOSEQUENCE_LF_API FRenderData_Lf
 	bool bChangedScaleCollectionThisFrame = false;
 	bool bChangedLodCollectionThisFrame = false;
 	bool bChangedCustomDataCollectionThisFrame = false;
-
 
 private:
 	FName EmitterName;
@@ -613,7 +614,8 @@ struct TURBOSEQUENCE_LF_API FSkinnedMeshRuntime_Lf : public FSkinnedMeshRuntime_
 	                                const TObjectPtr<UTurboSequence_MeshAsset_Lf> Asset,
 	                                const int32 OverrideMeshID = INDEX_NONE)
 	{
-		if (OverrideMeshID > INDEX_NONE && !InputCollection.Contains(OverrideMeshID) && !BlacklistedMeshIDs.Contains(OverrideMeshID))
+		if (OverrideMeshID > INDEX_NONE && !InputCollection.Contains(OverrideMeshID) && !BlacklistedMeshIDs.Contains(
+			OverrideMeshID))
 		{
 			MeshID = OverrideMeshID;
 		}
@@ -621,7 +623,8 @@ struct TURBOSEQUENCE_LF_API FSkinnedMeshRuntime_Lf : public FSkinnedMeshRuntime_
 		{
 			MeshID = FMath::RandRange(0, INT32_MAX - 1);
 			MeshID++;
-			while ((InputCollection.Contains(MeshID) || BlacklistedMeshIDs.Contains(MeshID)) || ((!InputCollection.Contains(MeshID) && !BlacklistedMeshIDs.Contains(MeshID)) && MeshID < GET0_NUMBER))
+			while ((InputCollection.Contains(MeshID) || BlacklistedMeshIDs.Contains(MeshID)) || ((!InputCollection.
+				Contains(MeshID) && !BlacklistedMeshIDs.Contains(MeshID)) && MeshID < GET0_NUMBER))
 			{
 				MeshID = FMath::RandRange(0, INT32_MAX - 1);
 				MeshID++;
