@@ -395,8 +395,10 @@ public:
 	                                                                  const FString& InAssetName,
 	                                                                  TArray<int32>& OutMeshIndicesOrder,
 	                                                                  const ETurboSequence_MeshDataMode_Lf MeshDataMode)
-	{
-		if (FString PackageName; FPackageName::TryConvertFilenameToLongPackageName(InPath, PackageName))
+	{		
+		const FString AssetFilePath = FPaths::Combine(
+			FPaths::GetPath(InPath), InAssetName + FPackageName::GetAssetPackageExtension());
+		if (FString PackageName; FPackageName::TryConvertFilenameToLongPackageName(AssetFilePath, PackageName))
 		{
 			if (!IsValid(SkeletalMesh))
 			{
