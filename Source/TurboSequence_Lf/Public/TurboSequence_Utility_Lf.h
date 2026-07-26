@@ -163,6 +163,13 @@ public:
 								 const TObjectPtr<UTurboSequence_MeshAsset_Lf> FromAsset,
 								 const TArray<TObjectPtr<UMaterialInterface>>& Materials,
 								 uint32 MaterialsHash);
+	
+private:
+	static UTexture* GetSkinWeightTexture(
+		const TObjectPtr<UTurboSequence_MeshAsset_Lf> FromAsset, int32& OutSizeX, int32& OutSizeY);
+	
+public:
+	
 	/**
 	 * Updates the cameras in the given array with the views from the world.
 	 *

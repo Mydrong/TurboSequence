@@ -133,6 +133,13 @@ uint32 FTurboSequence_Utility_Lf::CreateRenderer(FSkinnedMeshReference_Lf& Refer
 
 		// Set the Materials
 		int32 NumMaterials = Materials.Num();
+		int32 SkinWeightTextureSizeX = 0;
+		int32 SkinWeightTextureSizeY = 0;
+		UTexture* SkinWeightTexture = GetSkinWeightTexture(
+			FromAsset, SkinWeightTextureSizeX, SkinWeightTextureSizeY);
+		if (!SkinWeightTexture)
+			return MaterialsHash;
+		
 		for (int32 MaterialIdx = GET0_NUMBER; MaterialIdx < NumMaterials; ++MaterialIdx)
 		{
 			const FString& WantedMaterialName = FString::Format(
@@ -144,15 +151,15 @@ uint32 FTurboSequence_Utility_Lf::CreateRenderer(FSkinnedMeshReference_Lf& Refer
 
 			// SkinWeight_Texture2DArray
 			MaterialInstance->SetTextureParameterValue(*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTexture,
-			                                           FromAsset->MeshDataTexture);
+			                                           SkinWeightTexture);
 
 			// SkinWeight_Tex
 			MaterialInstance->SetScalarParameterValue(
 				*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTextureSizeX,
-				FromAsset->MeshDataTexture->GetSizeX());
+				SkinWeightTextureSizeX);
 			MaterialInstance->SetScalarParameterValue(
 				*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTextureSizeY,
-				FromAsset->MeshDataTexture->GetSizeY());
+				SkinWeightTextureSizeY);
 
 			float DataMode = 0.0f;
 			if (FromAsset->MeshDataMode != ETurboSequence_MeshDataMode_Lf::VertexColor) // Is UV
@@ -302,6 +309,14 @@ uint32 FTurboSequence_Utility_Lf::CreateRenderer(FSkinnedMeshReference_Lf& Refer
 		
 		// Set the Materials
 		int32 NumMaterials = Materials.Num();
+		int32 SkinWeightTextureSizeX = 0;
+		int32 SkinWeightTextureSizeY = 0;
+		UTexture* SkinWeightTexture = GetSkinWeightTexture(
+			FromAsset, SkinWeightTextureSizeX, SkinWeightTextureSizeY);
+		
+		if (!SkinWeightTexture)
+			return MaterialsHash;
+		
 		for (int32 MaterialIdx = GET0_NUMBER; MaterialIdx < NumMaterials; ++MaterialIdx)
 		{
 			TObjectPtr<UMaterialInstanceDynamic> MaterialInstance = UMaterialInstanceDynamic::Create(
@@ -309,15 +324,15 @@ uint32 FTurboSequence_Utility_Lf::CreateRenderer(FSkinnedMeshReference_Lf& Refer
 
 			// SkinWeight_Texture2DArray
 			MaterialInstance->SetTextureParameterValue(*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTexture,
-			                                           FromAsset->MeshDataTexture);
+			                                           SkinWeightTexture);
 
 			// SkinWeight_Tex
 			MaterialInstance->SetScalarParameterValue(
 				*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTextureSizeX,
-				FromAsset->MeshDataTexture->GetSizeX());
+				SkinWeightTextureSizeX);
 			MaterialInstance->SetScalarParameterValue(
 				*FTurboSequence_Helper_Lf::NameMaterialParameterMeshDataTextureSizeY,
-				FromAsset->MeshDataTexture->GetSizeY());
+				SkinWeightTextureSizeY);
 
 			float DataMode = 0.0f;
 			if (FromAsset->MeshDataMode != ETurboSequence_MeshDataMode_Lf::VertexColor) // Is UV
@@ -371,6 +386,24 @@ uint32 FTurboSequence_Utility_Lf::CreateRenderer(FSkinnedMeshReference_Lf& Refer
 
 		return MaterialsHash;	
 	}
+}
+
+UTexture* FTurboSequence_Utility_Lf::GetSkinWeightTexture(
+	const TObjectPtr<UTurboSequence_MeshAsset_Lf> FromAsset, int32& OutSizeX, int32& OutSizeY)
+{
+	UTexture* SkinWeightTexture = FromAsset->MeshDataTexture;
+	if (SkinWeightTexture)
+	{
+		OutSizeX = FromAsset->MeshDataTexture->GetSizeX();
+		OutSizeY = FromAsset->MeshDataTexture->GetSizeY();
+	}
+	else if (FromAsset->GlobalData && FromAsset->GlobalData->SkinWeightTexture)
+	{
+		SkinWeightTexture = FromAsset->GlobalData->SkinWeightTexture;
+		OutSizeX = FromAsset->GlobalData->SkinWeightTexture->SizeX;
+		OutSizeY = FromAsset->GlobalData->SkinWeightTexture->SizeY;
+	}
+	return SkinWeightTexture;
 }
 
 void FTurboSequence_Utility_Lf::UpdateCameras(TArray<FCameraView_Lf>& OutView, const UWorld* InWorld,
@@ -1074,7 +1107,6 @@ void FTurboSequence_Utility_Lf::CreateRawSkinWeightTextureBuffer(
 	const TObjectPtr<UWorld> World)
 {
 	TRACE_CPUPROFILER_EVENT_SCOPE(FTurboSequence_Utility_Lf::CreateRawSkinWeightTextureBuffer);
-#if WITH_EDITOR
 	if (!IsValid(FromAsset->GlobalData))
 	{
 		UE_LOG(LogTurboSequence_Lf, Display, TEXT("it Seems the Global data is Missing...."));
@@ -1305,8 +1337,6 @@ void FTurboSequence_Utility_Lf::CreateRawSkinWeightTextureBuffer(
 		}
 	});
 	World->GetTimerManager().SetTimerForNextTick(WaitTimerCallback);
-
-#endif
 }
 
 void FTurboSequence_Utility_Lf::CreateInverseReferencePose(FSkinnedMeshGlobalLibrary_Lf& Library,
